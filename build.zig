@@ -2,11 +2,24 @@ const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
 
     const mod = b.addModule("tglib", .{
         .root_source_file = b.path("src/root.zig"),
-        .target = target
+        .target = target,
+        .optimize = optimize
     });
+
+    const raylib_dep = b.dependency("raylib_zig", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const raylib = raylib_dep.module("raylib"); // main raylib module
+    const raylib_artifact = raylib_dep.artifact("raylib"); // raylib C library
+    
+    mod.linkLibrary(raylib_artifact);
+    mod.addImport("raylib", raylib);
 
     const mod_tests = b.addTest(.{
         .root_module = mod,
